@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — ATULÉRA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+body { background: #070B18; }
+
+/* ── Profile Photo Styles ──────────────────────── */
+.admin-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.admin-avatar:hover { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(201,168,76,0.3); }
+.admin-avatar-placeholder {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--emerald));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #fff;
+  border: 2px solid var(--gold);
+  cursor: default;
+  flex-shrink: 0;
+}
+
+/* ── Photo Upload Section ──────────────────────── */
+.photo-upload-zone {
+  border: 2px dashed rgba(201,168,76,0.3);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: rgba(201,168,76,0.03);
+  position: relative;
+}
+.photo-upload-zone:hover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.06);
+}
+.photo-upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.photo-preview {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+  margin: 0 auto 16px;
+  display: block;
+}
+.photo-placeholder-icon { font-size: 3rem; margin-bottom: 12px; }
+.photo-upload-text { color: var(--text-ink-dim); font-size: 0.88rem; }
+.photo-upload-hint { color: var(--text-ink-muted); font-size: 0.78rem; margin-top: 4px; }
+
+/* ── Service Image Upload ─────────────────────── */
+.svc-img-preview {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-ink);
+}
+.svc-img-upload-zone {
+  border: 1px dashed rgba(201,168,76,0.25);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: rgba(201,168,76,0.02);
+  position: relative;
+  font-size: 0.82rem;
+  color: var(--text-ink-muted);
+}
+.svc-img-upload-zone:hover { border-color: var(--gold); color: var(--gold-light); }
+.svc-img-upload-zone input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Testimonial management ───────────────────── */
+.testimonial-row {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.testimonial-row:last-child { border-bottom: none; }
+.tick-stars-small { color: var(--gold); font-size: 0.78rem; margin-bottom: 4px; }
+</style>
+</head>
+<body class="admin-body">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-wrap" style="position:fixed; top:20px; right:20px; z-index:9999;">
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Top Bar -->
+<div class="admin-topbar">
+  <a href="{{ url_for('home') }}" class="brand">ATULÉRA</a>
+  <div class="admin-topbar-right">
+    <div class="admin-user-badge" style="display:flex; align-items:center; gap:10px;">
+      {% if admin_photo %}
+      <img src="{{ url_for('static', filename=admin_photo) }}" alt="{{ session.admin_username }}" class="admin-avatar" title="{{ session.admin_username }}">
+      {% else %}
+      <div class="admin-avatar-placeholder">{{ session.admin_username[0].upper() if session.admin_username else 'A' }}</div>
+      {% endif %}
+      <span>{{ session.admin_username }}</span>
+    </div>
+    <a href="{{ url_for('admin_logout') }}" class="admin-logout">Sign Out</a>
+  </div>
+</div>
+
+<div class="admin-main">
+
+  <h1 class="admin-page-title">Admin Dashboard</h1>
+  <p class="admin-page-subtitle">Manage services, view client requests, and update website content.</p>
+
+  <!-- Integration Status Badges -->
+  <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
+    <a href="/" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:20px; font-size:0.78rem; font-weight:700; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); color:var(--gold-light); text-decoration:none; transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.15)'" onmouseout="this.style.background='rgba(201,168,76,0.08)'">
+      ↗ View Website
+    </a>
+  </div>
+  <!-- Stats Overview -->
+  <div class="admin-stats">
+    <div class="admin-stat">
+      <span class="admin-stat-num">{{ stats.total_services }}</span>
+      <span class="admin-stat-label">Total Services</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat-num emerald">{{ stats.active_services }}</span>
+      <span class="admin-stat-label">Active Services</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat-num">{{ stats.total_requests }}</span>
+      <span class="admin-stat-label">Service Requests</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat-num red">{{ stats.new_requests }}</span>
+      <span class="admin-stat-label">New Requests</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat-num">{{ stats.total_inquiries }}</span>
+      <span class="admin-stat-label">Inquiries</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat-num red">{{ stats.pending_inquiries }}</span>
+      <span class="admin-stat-label">Pending Replies</span>
+    </div>
+  </div>
+
+  <!-- Admin Tabs -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-panel="requests">📩 Service Requests</button>
+    <button class="admin-tab" data-panel="inquiries">💬 Inquiries</button>
+    <button class="admin-tab" data-panel="services">🛠 Manage Services</button>
+    <button class="admin-tab" data-panel="faqs">❓ FAQs</button>
+
+    <button class="admin-tab" data-panel="settings">⚙ Settings</button>
+  </div>
+
+  <!-- ================================
+       PANEL: Service Requests
+       ================================ -->
+  <div class="admin-panel active" id="panel-requests">
+    <div class="admin-section-card">
+      <div class="admin-section-header">
+        <span class="admin-section-title">Client Service Requests</span>
+        <span style="font-size:0.82rem; color:var(--text-ink-dim);">{{ service_requests|length }} total</span>
+      </div>
+      {% if service_requests %}
+      <div class="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Service</th>
+              <th>Contact</th>
+              <th>Message</th>
+              <th>File</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in service_requests %}
+            <tr>
+              <td style="color:var(--text-ink-dim);">{{ r.id }}</td>
+              <td style="font-size:0.82rem; white-space:nowrap;">{{ r.created_at }}</td>
+              <td style="font-weight:600;">{{ r.name }}</td>
+              <td>
+                <span style="font-size:0.88rem;">{{ r.service_title }}</span>
+              </td>
+              <td style="font-size:0.82rem;">
+                {% if r.phone %}<div>📞 {{ r.phone }}</div>{% endif %}
+                {% if r.email %}<div style="color:var(--text-ink-dim);">✉ {{ r.email }}</div>{% endif %}
+              </td>
+              <td style="font-size:0.85rem; color:var(--text-ink-dim); max-width:220px;">
+                {{ r.message[:120] ~ '...' if r.message and r.message|length > 120 else r.message or '—' }}
+              </td>
+              <td>
+                {% if r.client_file %}
+                <a href="{{ url_for('static', filename=r.client_file) }}" target="_blank" style="font-size:0.8rem; color:var(--gold-light); text-decoration:underline;">View File</a>
+                {% else %}
+                <span style="font-size:0.8rem; color:var(--text-ink-dim);">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% set sc = r.status.lower().replace(' ','') %}
+                <span class="status-badge status-{{ sc }}">{{ r.status }}</span>
+              </td>
+              <td>
+                <form method="POST" action="{{ url_for('admin_servicerequest_status', req_id=r.id) }}" style="display:flex; gap:6px; align-items:center;">
+                  <select name="status" style="background:var(--ink-soft); border:1px solid var(--border-ink); color:var(--text-ink); padding:5px 8px; font-size:0.8rem; border-radius:4px;">
+                    {% for st in request_statuses %}
+                    <option value="{{ st }}" {{ 'selected' if st == r.status else '' }}>{{ st }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-solid" style="padding:6px 12px; font-size:0.78rem;">Save</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="padding:48px; text-align:center; color:var(--text-ink-dim);">
+        <div style="font-size:2.5rem; margin-bottom:12px;">📭</div>
+        No service requests yet. They'll appear here when clients submit them.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ================================
+       PANEL: Inquiries
+       ================================ -->
+  <div class="admin-panel" id="panel-inquiries">
+    <div class="admin-section-card">
+      <div class="admin-section-header">
+        <span class="admin-section-title">Contact Form Inquiries</span>
+        <span style="font-size:0.82rem; color:var(--text-ink-dim);">{{ inquiries|length }} total</span>
+      </div>
+      {% if inquiries %}
+      <div class="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>Message</th>
+              <th>Status</th>
+              <th>Notes / Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inq in inquiries %}
+            <tr>
+              <td style="color:var(--text-ink-dim);">{{ inq.id }}</td>
+              <td style="font-size:0.82rem; white-space:nowrap;">{{ inq.created_at }}</td>
+              <td style="font-weight:600;">{{ inq.name }}</td>
+              <td style="font-size:0.82rem;">
+                {% if inq.phone %}<div>📞 {{ inq.phone }}</div>{% endif %}
+                {% if inq.email %}<div style="color:var(--text-ink-dim);">✉ {{ inq.email }}</div>{% endif %}
+              </td>
+              <td style="font-size:0.85rem; color:var(--text-ink-dim); max-width:240px;">
+                {{ inq.message[:150] ~ '...' if inq.message|length > 150 else inq.message }}
+              </td>
+              <td>
+                {% if inq.responded %}
+                  <span class="status-badge status-completed">Responded</span>
+                {% else %}
+                  <span class="status-badge status-new">Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if not inq.responded %}
+                <form method="POST" action="{{ url_for('admin_inquiry_respond', inquiry_id=inq.id) }}" style="display:flex; flex-direction:column; gap:6px;">
+                  <input name="admin_note" type="text" placeholder="Add a note..." style="background:var(--ink); border:1px solid var(--border-ink); color:var(--text-ink); padding:6px 10px; font-size:0.82rem; border-radius:4px; width:200px;">
+                  <button type="submit" class="btn btn-sm btn-emerald" style="padding:6px 12px; font-size:0.78rem; width:fit-content;">Mark Responded</button>
+                </form>
+                {% else %}
+                  <span style="color:var(--text-ink-muted); font-size:0.82rem;">{{ inq.admin_note or '—' }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="padding:48px; text-align:center; color:var(--text-ink-dim);">
+        <div style="font-size:2.5rem; margin-bottom:12px;">💬</div>
+        No inquiries yet. They'll appear here from the contact form.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ================================
+       PANEL: Manage Services
+       ================================ -->
+  <div class="admin-panel" id="panel-services">
+
+    <!-- Add New Service -->
+    <div class="admin-section-card" style="margin-bottom:28px;">
+      <div class="admin-section-header">
+        <span class="admin-section-title">➕ Add New Service</span>
+      </div>
+      <form method="POST" action="{{ url_for('admin_service_add') }}">
+        <div class="admin-form-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+          <div class="admin-field-group">
+            <label>Title *</label>
+            <input type="text" name="title" placeholder="Service name" required>
+          </div>
+          <div class="admin-field-group">
+            <label>Category *</label>
+            <select name="group_name">
+              <option value="financial">Financial &amp; Tax</option>
+              <option value="digital">Digital Solutions</option>
+            </select>
+          </div>
+          <div class="admin-field-group">
+            <label>Icon</label>
+            <select name="icon">
+              <option value="spark">✦ Spark</option>
+              <option value="file">📄 File</option>
+              <option value="chart">📊 Chart</option>
+              <option value="growth">📈 Growth</option>
+              <option value="doc">📑 Document</option>
+              <option value="web">🌐 Web</option>
+              <option value="social">📱 Social</option>
+              <option value="google">🔍 Google</option>
+              <option value="chat">💬 Chat</option>
+              <option value="qr">⬛ QR</option>
+              <option value="camera">📷 Camera</option>
+            </select>
+          </div>
+          <div class="admin-field-group">
+            <label>Sort Order</label>
+            <input type="number" name="sort_order" value="10" min="0">
+          </div>
+          <div class="admin-field-group" style="grid-column: 1/-1;">
+            <label>Description *</label>
+            <textarea name="description" rows="2" placeholder="Short description for the service card..." required></textarea>
+          </div>
+          <div class="admin-field-group" style="grid-column: 1/-1;">
+            <label>Benefits (one per line)</label>
+            <textarea name="benefits" rows="3" placeholder="Benefit 1&#10;Benefit 2&#10;Benefit 3"></textarea>
+          </div>
+          <div class="admin-field-group" style="grid-column: 1/-1;">
+            <label>Who It's For (one per line)</label>
+            <textarea name="who_for" rows="2" placeholder="Salaried individuals&#10;Business owners"></textarea>
+          </div>
+          <div class="admin-field-group" style="grid-column: 1/-1;">
+            <label>Process Steps (one per line)</label>
+            <textarea name="process_steps" rows="3" placeholder="Step 1&#10;Step 2&#10;Step 3"></textarea>
+          </div>
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-solid btn-sm">Add Service</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Existing Services -->
+    <div class="admin-section-card">
+      <div class="admin-section-header">
+        <span class="admin-section-title">📋 Existing Services</span>
+        <span style="font-size:0.82rem; color:var(--text-ink-dim);">{{ services|length }} total</span>
+      </div>
+      {% for s in services %}
+      <details class="service-edit-row">
+        <summary>
+          <div style="display:flex; align-items:center; gap:14px; flex:1;">
+            <span class="status-badge {{ 'status-completed' if s.active else 'status-cancelled' }}">
+              {{ 'Active' if s.active else 'Hidden' }}
+            </span>
+            <span style="font-weight:600; color:var(--text-ink);">{{ s.title }}</span>
+            <span style="font-size:0.8rem; color:var(--text-ink-dim);">[{{ s.group_name }}]</span>
+          </div>
+          <span style="font-size:0.8rem; color:var(--text-ink); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.1); cursor:pointer;">✏️ Edit Service ▼</span>
+        </summary>
+        <div class="service-edit-form">
+
+          <!-- Service Image Upload -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:0.8rem; font-weight:600; color:var(--text-ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">Service Image</div>
+            {% if s.image_url %}
+            <img src="{{ url_for('static', filename=s.image_url) }}" alt="{{ s.title }}" class="svc-img-preview">
+            {% endif %}
+            <form method="POST" action="{{ url_for('admin_service_image', service_id=s.id) }}" enctype="multipart/form-data">
+              <div class="svc-img-upload-zone">
+                <input type="file" name="service_image" accept="image/*" onchange="this.form.submit()">
+                📷 Click to upload/change main image
+              </div>
+            </form>
+          </div>
+
+          <!-- Gallery Images Upload -->
+          <div style="margin-bottom:24px; padding:16px; background:var(--ink-soft); border-radius:12px; border:1px solid var(--border-ink);">
+            <div style="font-size:0.8rem; font-weight:600; color:var(--text-ink-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px;">Image Gallery (Multiple)</div>
+            
+            {% set s_gallery = galleries.get(s.id, []) %}
+            {% if s_gallery %}
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+              {% for g in s_gallery %}
+              <div style="position:relative; width:100px; height:70px; border-radius:6px; overflow:hidden; border:1px solid var(--border-ink-strong);">
+                <img src="{{ url_for('static', filename=g.image_url) }}" style="width:100%; height:100%; object-fit:cover;">
+                <form method="POST" action="{{ url_for('admin_service_gallery_delete', image_id=g.id) }}" style="position:absolute; top:2px; right:2px;" onsubmit="return confirm('Delete this gallery image?')">
+                  <button type="submit" style="background:rgba(220,38,38,0.9); color:white; border:none; border-radius:4px; cursor:pointer; width:22px; height:22px; font-size:10px;">✕</button>
+                </form>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('admin_service_gallery_add', service_id=s.id) }}" enctype="multipart/form-data">
+              <div class="svc-img-upload-zone" style="height:auto; min-height:60px; padding:10px;">
+                <input type="file" name="gallery_images" accept="image/*" multiple onchange="this.form.submit()">
+                🖼️ Click to add images to gallery
+              </div>
+            </form>
+          </div>
+
+          <form method="POST" action="{{ url_for('admin_service_edit', service_id=s.id) }}">
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:14px; margin-bottom:14px;">
+              <div class="admin-field-group">
+                <label>Title</label>
+                <input type="text" name="title" value="{{ s.title }}" required>
+              </div>
+              <div class="admin-field-group">
+                <label>Category</label>
+                <select name="group_name">
+                  <option value="financial" {{ 'selected' if s.group_name=='financial' }}>Financial &amp; Tax</option>
+                  <option value="digital" {{ 'selected' if s.group_name=='digital' }}>Digital Solutions</option>
+                </select>
+              </div>
+              <div class="admin-field-group">
+                <label>Icon</label>
+                <select name="icon">
+                  {% for ico in ['spark','file','chart','growth','doc','web','social','google','chat','qr','camera'] %}
+                  <option value="{{ ico }}" {{ 'selected' if s.icon==ico }}>{{ ico }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="admin-field-group">
+                <label>Sort Order</label>
+                <input type="number" name="sort_order" value="{{ s.sort_order }}" min="0">
+              </div>
+              <div class="admin-field-group" style="display:flex; align-items:center; gap:8px; padding-top:20px;">
+                <input type="checkbox" name="active" id="active_{{ s.id }}" {{ 'checked' if s.active }} style="width:18px;height:18px;accent-color:var(--emerald-bright);">
+                <label for="active_{{ s.id }}" style="text-transform:none; font-size:0.9rem; letter-spacing:0; color:var(--text-ink);">Active (visible on site)</label>
+              </div>
+            </div>
+            <div style="display:grid; gap:12px; margin-bottom:16px;">
+              <div class="admin-field-group">
+                <label>Description</label>
+                <textarea name="description" rows="2">{{ s.description }}</textarea>
+              </div>
+              <div class="admin-field-group">
+                <label>Benefits (one per line)</label>
+                <textarea name="benefits" rows="3">{{ s.benefits }}</textarea>
+              </div>
+              <div class="admin-field-group">
+                <label>Who It's For (one per line)</label>
+                <textarea name="who_for" rows="2">{{ s.who_for }}</textarea>
+              </div>
+              <div class="admin-field-group">
+                <label>Process Steps (one per line)</label>
+                <textarea name="process_steps" rows="3">{{ s.process_steps }}</textarea>
+              </div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button type="submit" class="btn btn-solid btn-sm">Save Changes</button>
+              <a href="{{ url_for('service_detail', slug=s.slug) }}" target="_blank" style="font-size:0.82rem; color:var(--text-ink-dim);">↗ View on site</a>
+            </div>
+          </form>
+          <form method="POST" action="{{ url_for('admin_service_delete', service_id=s.id) }}" style="margin-top:10px;" onsubmit="return confirm('Delete {{ s.title }}? This cannot be undone.')">
+            <button type="submit" class="btn-danger btn-sm">🗑 Delete Service</button>
+          </form>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ================================
+       PANEL: FAQs
+       ================================ -->
+  <div class="admin-panel" id="panel-faqs">
+    <!-- Add FAQ -->
+    <div class="admin-section-card" style="margin-bottom:28px;">
+      <div class="admin-section-header">
+        <span class="admin-section-title">➕ Add New FAQ</span>
+      </div>
+      <form method="POST" action="{{ url_for('admin_faq_add') }}">
+        <div class="admin-form-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="admin-field-group" style="grid-column:1/-1;">
+            <label>Question *</label>
+            <input type="text" name="question" placeholder="Type the question..." required>
+          </div>
+          <div class="admin-field-group" style="grid-column:1/-1;">
+            <label>Answer *</label>
+            <textarea name="answer" rows="3" placeholder="Type the answer..." required></textarea>
+          </div>
+          <div class="admin-field-group">
+            <label>Sort Order</label>
+            <input type="number" name="sort_order" value="{{ (faqs|length + 1) }}">
+          </div>
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-solid btn-sm">Add FAQ</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Existing FAQs -->
+    <div class="admin-section-card">
+      <div class="admin-section-header">
+        <span class="admin-section-title">📋 Current FAQs</span>
+      </div>
+      {% for f in faqs %}
+      <div style="padding:20px 24px; border-bottom:1px solid var(--border-ink); display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+        <div style="flex:1;">
+          <div style="font-weight:600; color:var(--text-ink); margin-bottom:6px; font-size:0.95rem;">{{ f.question }}</div>
+          <div style="font-size:0.85rem; color:var(--text-ink-dim);">{{ f.answer }}</div>
+        </div>
+        <form method="POST" action="{{ url_for('admin_faq_delete', faq_id=f.id) }}" onsubmit="return confirm('Delete this FAQ?')">
+          <button type="submit" class="btn-danger btn-sm" style="white-space:nowrap;">🗑 Delete</button>
+        </form>
+      </div>
+      {% else %}
+      <div style="padding:40px; text-align:center; color:var(--text-ink-dim);">No FAQs yet. Add one above.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ================================
+       PANEL: Settings
+       ================================ -->
+  <div class="admin-panel" id="panel-settings">
+
+    <!-- Global Site Configuration -->
+    <div class="admin-section-card" style="max-width:600px; margin-bottom:28px;">
+      <div class="admin-section-header">
+        <span class="admin-section-title">🌍 Global Site Configuration</span>
+      </div>
+      <div style="padding:28px; display:flex; gap:24px; flex-wrap:wrap;">
+        
+        <!-- Admin Photo -->
+        <div style="flex:1; min-width:200px;">
+          <h4 style="margin-bottom:12px; font-size:0.9rem; color:var(--text-ink);">Professional Photo (About Us)</h4>
+          <form method="POST" action="{{ url_for('admin_site_settings') }}" enctype="multipart/form-data">
+            <div class="photo-upload-zone" style="height:150px; min-height:150px;">
+              <input type="file" name="admin_photo" accept="image/*" onchange="this.form.submit()">
+              {% if admin_photo %}
+              <img src="{{ url_for('static', filename=admin_photo) }}" alt="Admin Photo" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+              <p class="photo-upload-text" style="position:absolute; bottom:10px; background:rgba(0,0,0,0.6); padding:4px 8px; border-radius:4px;">Change Photo</p>
+              {% else %}
+              <div class="photo-placeholder-icon" style="font-size:2rem; margin-bottom:8px;">👤</div>
+              <p class="photo-upload-text" style="font-size:0.75rem;">Click to upload photo</p>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+
+        <!-- Payment QR -->
+        <div style="flex:1; min-width:200px;">
+          <h4 style="margin-bottom:12px; font-size:0.9rem; color:var(--text-ink);">Payment QR Code (Footer)</h4>
+          <form method="POST" action="{{ url_for('admin_site_settings') }}" enctype="multipart/form-data">
+            <div class="photo-upload-zone" style="height:150px; min-height:150px;">
+              <input type="file" name="payment_qr" accept="image/*" onchange="this.form.submit()">
+              {% if payment_qr %}
+              <img src="{{ url_for('static', filename=payment_qr) }}" alt="Payment QR" style="width:100%; height:100%; object-fit:contain; border-radius:12px; background:white;">
+              <p class="photo-upload-text" style="position:absolute; bottom:10px; background:rgba(0,0,0,0.6); padding:4px 8px; border-radius:4px;">Change QR</p>
+              {% else %}
+              <div class="photo-placeholder-icon" style="font-size:2rem; margin-bottom:8px;">📱</div>
+              <p class="photo-upload-text" style="font-size:0.75rem;">Click to upload QR code</p>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Create New Admin -->
+    <div class="admin-section-card" style="max-width:480px; margin-bottom:28px;">
+      <div class="admin-section-header">
+        <span class="admin-section-title">👤 Admin Accounts</span>
+      </div>
+      <div style="padding:24px;">
+        <p style="color:var(--text-ink-dim); font-size:0.9rem; margin-bottom:20px; line-height:1.65;">
+          Create additional admin accounts for trusted team members. All admin accounts have full dashboard access.
+        </p>
+        <a href="{{ url_for('admin_signup') }}" class="btn btn-solid btn-sm">+ Create New Admin Account</a>
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="admin-section-card" style="max-width:480px; margin-bottom:28px;">
+      <div class="admin-section-header">
+        <span class="admin-section-title">🔒 Change Password</span>
+      </div>
+      <form method="POST" action="{{ url_for('admin_change_password') }}" style="padding:24px;">
+        <div class="admin-form-grid" style="grid-template-columns:1fr;">
+          <div class="admin-field-group">
+            <label>New Password (min. 4 characters)</label>
+            <input type="password" name="new_password" placeholder="Enter new password" required minlength="4">
+          </div>
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="btn btn-solid btn-sm">Update Password</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-section-card" style="max-width:580px; margin-top:28px;">
+      <div class="admin-section-header">
+        <span class="admin-section-title">ℹ️ Supabase Integration Notes</span>
+      </div>
+      <div style="padding:24px; color:var(--text-ink-dim); font-size:0.9rem; line-height:1.75;">
+        <p style="margin-bottom:12px;">This app currently uses <strong style="color:var(--gold-light);">SQLite</strong> for local storage. To connect Supabase:</p>
+        <ol style="padding-left:20px; display:flex; flex-direction:column; gap:10px;">
+          <li>Install: <code style="background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; font-size:0.85rem;">pip install supabase</code></li>
+          <li>Create tables in Supabase matching: <code style="background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; font-size:0.85rem;">services, service_requests, inquiries, faqs</code></li>
+          <li>Add <code style="background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; font-size:0.85rem;">SUPABASE_URL</code> and <code style="background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; font-size:0.85rem;">SUPABASE_KEY</code> to your environment</li>
+          <li>Replace <code style="background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; font-size:0.85rem;">get_db()</code> calls in <code style="background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; font-size:0.85rem;">app.py</code> with Supabase client queries</li>
+        </ol>
+        <p style="margin-top:16px; color:var(--text-ink-muted);">Contact us or check README.md for full migration instructions.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /admin-main -->
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+// Auto-dismiss flash messages
+document.querySelectorAll('.flash').forEach(f => {
+  setTimeout(() => { f.style.opacity='0'; f.style.transition='opacity 0.4s'; setTimeout(()=>f.remove(),400); }, 5000);
+});
+
+// Photo preview before upload
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var prev = document.getElementById('photoPreview');
+      if (prev) { prev.src = e.target.result; }
+      else {
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'photo-preview';
+        img.id = 'photoPreview';
+        var zone = document.getElementById('photoZone');
+        zone.innerHTML = '';
+        zone.appendChild(img);
+        var txt = document.createElement('p');
+        txt.className = 'photo-upload-text';
+        txt.textContent = 'Uploading...';
+        zone.appendChild(txt);
+        zone.appendChild(input);
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+</body>
+</html>

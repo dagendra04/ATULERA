@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Admin Account — ATULÉRA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>body { background: var(--ink); }</style>
+</head>
+<body class="admin-login-body">
+
+<div class="admin-login-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}" style="margin-bottom:16px; border-radius:8px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="admin-login-card">
+    <div class="admin-login-logo">
+      <span class="brand">ATULÉRA</span>
+      <p class="admin-login-subtitle" style="color:var(--text-ink-dim); font-size:0.88rem; margin-top:8px;">Create New Admin Account</p>
+    </div>
+
+    <div style="background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:0.84rem; color:var(--gold-light); line-height:1.6;">
+      ⚠️ Only create accounts for trusted team members. All admin accounts have full access to the dashboard.
+    </div>
+
+    <form method="POST" action="{{ url_for('admin_signup') }}">
+      <div class="admin-field">
+        <label for="new_username">New Username</label>
+        <input type="text" id="new_username" name="username" placeholder="Choose a username" required autocomplete="off">
+      </div>
+      <div class="admin-field">
+        <label for="new_password">Password</label>
+        <input type="password" id="new_password" name="password" placeholder="Min. 4 characters" required minlength="4">
+      </div>
+      <button type="submit" class="btn btn-solid admin-login-btn" style="margin-top:8px;">
+        Create Admin Account
+      </button>
+    </form>
+
+    <a href="{{ url_for('admin_dashboard') }}" class="admin-back">← Back to Dashboard</a>
+  </div>
+</div>
+
+</body>
+</html>

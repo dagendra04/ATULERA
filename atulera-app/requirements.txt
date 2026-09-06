@@ -1,0 +1,6 @@
+Flask==3.0.3
+python-dotenv==1.0.1
+echo "gunicorn==22.0.0" >> requirements.txt
+git add requirements.txt
+git commit -m "Add gunicorn for production deployment"
+git push

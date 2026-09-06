@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Portal — ATULÉRA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+body {
+  background: #07091A;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 140px 20px; /* Extra bottom padding to avoid widget overlap */
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Background orbs */
+body::before {
+  content: '';
+  position: fixed;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -200px; left: -200px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(26,107,74,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Grid bg */
+.login-bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+/* Card */
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(10,14,32,0.92);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 24px;
+  padding: 48px 44px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 80px rgba(201,168,76,0.05);
+  position: relative;
+  z-index: 9999;
+  animation: cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Brand */
+.login-brand {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.login-brand .brand-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #C9A84C, #E8C96B, #8DB87A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.08em;
+}
+.login-subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.82rem;
+  margin-bottom: 32px;
+  letter-spacing: 0.04em;
+}
+
+/* Divider */
+.login-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--emerald-bright), transparent);
+  border-radius: 2px;
+  margin-bottom: 32px;
+  opacity: 0.5;
+}
+
+/* Tab switcher */
+.login-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 32px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.login-tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.login-tab.active {
+  background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(26,107,74,0.15));
+  color: #fff;
+  border: 1px solid rgba(201,168,76,0.3);
+}
+
+/* Form panels */
+.login-panel { display: none; }
+.login-panel.active { display: block; }
+
+/* Field */
+.login-field {
+  margin-bottom: 18px;
+}
+.login-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+.login-field input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+.login-field input::placeholder { color: rgba(255,255,255,0.2); }
+.login-field input:focus {
+  outline: none;
+  border-color: rgba(201,168,76,0.5);
+  background: rgba(201,168,76,0.05);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+
+/* Access code field — smaller */
+.access-code-wrap {
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+.access-code-wrap p {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+/* Submit btn */
+.login-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #C9A84C, #9E7A28);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.04em;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.login-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(201,168,76,0.4); }
+.login-btn:hover::before { opacity: 1; }
+.login-btn:active { transform: translateY(0); }
+
+/* Back link */
+.login-back {
+  display: block;
+  text-align: center;
+  margin-top: 28px;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.login-back:hover { color: var(--gold-light); }
+
+/* Flash */
+.flash {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.flash.error {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #FCA5A5;
+}
+.flash.success {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #86EFAC;
+}
+
+/* Warning box */
+.signup-warning {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.82rem;
+  color: rgba(201,168,76,0.8);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+<div class="login-bg-grid"></div>
+
+<div class="login-card">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Brand -->
+  <div class="login-brand">
+    <div class="brand-text">ATULÉRA</div>
+  </div>
+  <p class="login-subtitle">Admin Portal — Secure Access</p>
+  <div class="login-divider"></div>
+
+  <!-- Tab Switcher -->
+  <div class="login-tabs">
+    <button class="login-tab {% if tab != 'signup' %}active{% endif %}" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+    <button class="login-tab {% if tab == 'signup' %}active{% endif %}" id="tabSignUp" onclick="switchTab('signup')">Sign Up</button>
+  </div>
+
+  <!-- ── SIGN IN PANEL ─────────────────────────── -->
+  <div class="login-panel {% if tab != 'signup' %}active{% endif %}" id="panelSignIn">
+    <form method="POST" action="{{ url_for('admin_login') }}">
+      <input type="hidden" name="action" value="login">
+      <div class="login-field">
+        <label for="signin_username">Username</label>
+        <input type="text" id="signin_username" name="username" placeholder="Enter your username" required autocomplete="username">
+      </div>
+      <div class="login-field">
+        <label for="signin_password">Password</label>
+        <input type="password" id="signin_password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+      </div>
+
+
+      <button type="submit" class="login-btn">Sign In to Dashboard →</button>
+    </form>
+  </div>
+
+  <!-- ── SIGN UP PANEL ─────────────────────────── -->
+  <div class="login-panel {% if tab == 'signup' %}active{% endif %}" id="panelSignUp">
+    <div class="signup-warning">
+      ⚠️ Only create accounts for trusted team members. You will need the admin access code to register.
+    </div>
+    <form method="POST" action="{{ url_for('admin_login') }}">
+      <input type="hidden" name="action" value="signup">
+      <div class="login-field">
+        <label for="signup_username">Username</label>
+        <input type="text" id="signup_username" name="username" placeholder="Choose a username" required autocomplete="off">
+      </div>
+      <div class="login-field">
+        <label for="signup_password">Password</label>
+        <input type="password" id="signup_password" name="password" placeholder="Minimum 4 characters" required minlength="4">
+      </div>
+      <div class="access-code-wrap">
+        <p>🔐 Enter the admin access code to create your account:</p>
+        <input type="password" name="access_code" placeholder="Access code" style="background:rgba(0,0,0,0.3); border:1px solid rgba(201,168,76,0.25); color:#fff; padding:12px 16px; border-radius:8px; width:100%; font-family:monospace; box-sizing:border-box;">
+      </div>
+      <button type="submit" class="login-btn" style="background:linear-gradient(135deg,#1a6b4a,#2d9966);">Create Admin Account →</button>
+    </form>
+  </div>
+
+  <a href="{{ url_for('home') }}" class="login-back">← Return to main website</a>
+</div>
+
+<script>
+function switchTab(tab) {
+  var signin = document.getElementById('panelSignIn');
+  var signup = document.getElementById('panelSignUp');
+  var tabSI = document.getElementById('tabSignIn');
+  var tabSU = document.getElementById('tabSignUp');
+  if (tab === 'signin') {
+    signin.classList.add('active');
+    signup.classList.remove('active');
+    tabSI.classList.add('active');
+    tabSU.classList.remove('active');
+  } else {
+    signup.classList.add('active');
+    signin.classList.remove('active');
+    tabSU.classList.add('active');
+    tabSI.classList.remove('active');
+  }
+}
+</script>
+</body>
+</html>

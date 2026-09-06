@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ service.title }} — ATULÉRA</title>
+<meta name="description" content="{{ service.description }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+{% if elevenlabs_agent_active %}
+<script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+{% endif %}
+
+<style>
+  body { background: var(--paper); }
+
+  /* ── Service Hero with Image ──────────────────── */
+  .svc-hero {
+    position: relative;
+    padding: 160px 0 90px;
+    overflow: hidden;
+    background: var(--ink);
+  }
+
+  /* Real service image banner */
+  .svc-hero-image {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.22;
+    transition: opacity 1s ease;
+    animation: heroImgZoom 12s ease infinite alternate;
+  }
+  @keyframes heroImgZoom {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+  }
+
+  .svc-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(8,13,26,0.6) 0%, rgba(8,13,26,0.3) 50%, rgba(8,13,26,0.7) 100%);
+    pointer-events: none;
+  }
+
+  /* Gold/Emerald glow orbs */
+  .svc-hero-orb1 {
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--gold-glow), transparent 65%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .svc-hero-orb2 {
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--emerald-glow), transparent 65%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .svc-hero-inner { position: relative; z-index: 2; }
+
+  .svc-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-ink-dim);
+    margin-bottom: 24px;
+  }
+  .svc-breadcrumb a { color: var(--gold-light); transition: color 0.3s; }
+  .svc-breadcrumb a:hover { color: var(--gold-bright); }
+  .svc-breadcrumb span { color: var(--text-ink-muted); }
+
+  .svc-category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .svc-category-badge.financial {
+    background: var(--gold-glow);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold-light);
+  }
+  .svc-category-badge.digital {
+    background: var(--emerald-glow);
+    border: 1px solid rgba(26,107,74,0.3);
+    color: var(--emerald-light);
+  }
+
+  .svc-hero h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--text-ink);
+    margin-bottom: 20px;
+    max-width: 24ch;
+    line-height: 1.1;
+  }
+
+  .svc-hero .desc {
+    color: var(--text-ink-dim);
+    font-size: 1.05rem;
+    max-width: 58ch;
+    line-height: 1.75;
+    margin-bottom: 32px;
+  }
+
+  /* ── Detail Layout ────────────────────────────── */
+  .svc-detail-body {
+    padding: 80px 0;
+    background: var(--paper);
+  }
+
+  .svc-detail-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 0.85fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  /* ── Content Sections ────────────────────────── */
+  .detail-section { margin-bottom: 48px; }
+
+  .detail-section-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-paper);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .detail-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-paper);
+  }
+
+  .benefit-list, .who-list { display: flex; flex-direction: column; gap: 0; }
+
+  .benefit-item, .who-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-paper);
+    font-size: 0.95rem;
+    color: var(--text-paper);
+    line-height: 1.5;
+  }
+  .benefit-item:last-child, .who-item:last-child { border-bottom: none; }
+
+  .benefit-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .who-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--emerald), var(--emerald-bright));
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .benefit-dot svg, .who-dot svg { width: 12px; height: 12px; stroke: #fff; }
+
+  /* ── Process Steps ───────────────────────────── */
+  .process-steps { display: flex; flex-direction: column; gap: 0; counter-reset: step; }
+
+  .process-step-item {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-paper);
+    counter-increment: step;
+    align-items: flex-start;
+  }
+  .process-step-item:last-child { border-bottom: none; }
+
+  .step-badge {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--gold-light);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-badge::before { content: counter(step, decimal-leading-zero); }
+  .step-text { font-size: 0.95rem; color: var(--text-paper); line-height: 1.6; padding-top: 6px; }
+
+  /* ── Disclaimer ──────────────────────────────── */
+  .disclaimer {
+    background: rgba(201,168,76,0.07);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    padding: 20px 24px;
+    font-size: 0.85rem;
+    color: var(--text-paper-dim);
+    line-height: 1.7;
+    margin-top: 16px;
+  }
+
+  /* ── Related Services ────────────────────────── */
+  .related-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .related-card {
+    padding: 22px 20px;
+    border: 1px solid var(--border-paper);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s var(--ease);
+    background: #fff;
+    text-decoration: none;
+    display: block;
+  }
+  .related-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+  .related-card-img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background: #eee;
+  }
+  .related-card h4 { font-size: 0.95rem; margin-bottom: 6px; color: var(--text-paper); font-weight: 700; }
+  .related-card p { font-size: 0.83rem; color: var(--text-paper-dim); margin-bottom: 12px; line-height: 1.55; }
+  .related-card .link { font-size: 0.82rem; font-weight: 700; color: var(--gold); }
+
+  /* ── Request Card (sticky) ───────────────────── */
+  .request-card {
+    position: sticky;
+    top: 100px;
+    background: var(--ink);
+    color: var(--text-ink);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-ink-strong);
+  }
+
+  .request-card-header {
+    padding: 28px 28px 20px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(26,107,74,0.08));
+    border-bottom: 1px solid var(--border-ink);
+  }
+  .request-card-header h3 { font-size: 1.3rem; color: var(--text-ink); margin-bottom: 6px; }
+  .request-card-header p { color: var(--text-ink-dim); font-size: 0.86rem; line-height: 1.5; }
+
+  .request-card-body { padding: 24px 28px 28px; }
+
+  .request-card input,
+  .request-card textarea,
+  .request-card select {
+    width: 100%;
+    background: rgba(8,13,26,0.6);
+    border: 1px solid var(--border-ink-strong);
+    color: var(--text-ink);
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+  }
+  .request-card input::placeholder,
+  .request-card textarea::placeholder { color: var(--text-ink-muted); }
+  .request-card input:focus,
+  .request-card textarea:focus,
+  .request-card select:focus {
+    outline: none;
+    border-color: rgba(201,168,76,0.5);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+  }
+  .request-card textarea { min-height: 90px; resize: vertical; }
+  .request-card select option { background: var(--ink-soft); }
+  .request-card button { width: 100%; }
+
+  /* ── Quick contact buttons below form ────────── */
+  .form-alt-contact {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .form-alt-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border-ink);
+    color: var(--text-ink);
+    transition: all 0.3s;
+    background: var(--ink-soft);
+  }
+  .form-alt-btn:hover { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+
+  footer { background: #050810; }
+
+  @media (max-width: 880px) {
+    .svc-detail-grid { grid-template-columns: 1fr; }
+    .request-card { position: static; }
+    .related-strip { grid-template-columns: 1fr; }
+    .svc-hero { padding: 120px 0 60px; }
+  }
+</style>
+</head>
+<body>
+
+{% import '_icons.html' as icons %}
+
+<div class="flash-wrap" id="flashWrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<!-- Header (always scrolled state on inner pages) -->
+<header id="siteHeader" class="scrolled">
+  <div class="wrap">
+    <a href="/" class="brand">ATULÉRA</a>
+    <nav class="primary-nav" id="primaryNav">
+      <a href="{{ url_for('home') }}#home" class="nav-link">Home</a>
+      <a href="{{ url_for('home') }}#about" class="nav-link">About</a>
+      <a href="{{ url_for('home') }}#services" class="nav-link">Services</a>
+      <a href="{{ url_for('home') }}#solutions" class="nav-link">Features</a>
+      <a href="{{ url_for('home') }}#why" class="nav-link">Why Us</a>
+      <a href="{{ url_for('home') }}#faq" class="nav-link">FAQ</a>
+      <a href="{{ url_for('home') }}#contact" class="nav-link nav-cta">Contact Us</a>
+    </nav>
+    <div class="custom-translate" style="margin:0 15px; display:flex; align-items:center; gap:6px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold-light);">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </svg>
+      <div id="google_translate_element"></div>
+    </div>
+    <style>
+      .goog-te-gadget-simple {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 4px !important;
+        border-radius: 6px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.9rem !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+      .goog-te-gadget-simple span { color: var(--text-ink) !important; font-weight: 500 !important; }
+      .goog-te-gadget-simple img { display: none !important; }
+      .goog-te-gadget-simple .goog-te-menu-value span:nth-child(3) { display: none; }
+      .goog-te-gadget-simple .goog-te-menu-value span:nth-child(5) { margin-left: 6px; color: var(--gold-light); }
+      body { top: 0 !important; }
+      .skiptranslate iframe { display: none !important; }
+    </style>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="2" y1="6" x2="20" y2="6"/>
+        <line x1="2" y1="11" x2="20" y2="11"/>
+        <line x1="2" y1="16" x2="20" y2="16"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ============================
+     SERVICE HERO
+     ============================ -->
+<section class="svc-hero">
+  <!-- Real service image background -->
+  {% if service.image_url %}
+  <div class="svc-hero-image" style="background-image: url('{{ url_for('static', filename=service.image_url) }}');"></div>
+  {% elif service.group_name == 'digital' %}
+  <div class="svc-hero-image" style="background-image: url('{{ url_for('static', filename='images/digital_banner.jpg') }}');"></div>
+  {% else %}
+  <div class="svc-hero-image" style="background-image: url('{{ url_for('static', filename='images/finance_banner.jpg') }}');"></div>
+  {% endif %}
+
+  <div class="svc-hero-orb1"></div>
+  <div class="svc-hero-orb2"></div>
+
+  <div class="wrap svc-hero-inner">
+    <div class="svc-breadcrumb">
+      <a href="/">Home</a>
+      <span>›</span>
+      <a href="/#services">Services</a>
+      <span>›</span>
+      <span style="color:var(--text-ink);">{{ service.title }}</span>
+    </div>
+
+    <span class="svc-category-badge {{ service.group_name }}">
+      {% if service.group_name == 'financial' %}💰 Financial &amp; Tax Services{% else %}🌐 Digital Solutions{% endif %}
+    </span>
+
+    <h1>{{ service.title }}</h1>
+    <p class="desc">{{ service.description }}</p>
+
+    <div class="cta-row">
+      <a href="#request" class="btn btn-solid">Request This Service</a>
+      <a href="/#contact" class="btn btn-outline">General Enquiry</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     DETAIL BODY
+     ============================ -->
+<section class="svc-detail-body">
+  <div class="wrap">
+    <div class="svc-detail-grid">
+
+      <!-- LEFT: Content -->
+      <div>
+
+        {% if who_for %}
+        <div class="detail-section reveal">
+          <h2 class="detail-section-title">Who Is This For?</h2>
+          <ul class="who-list">
+            {% for w in who_for %}
+            <li class="who-item">
+              <span class="who-dot">
+                <svg viewBox="0 0 12 12" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 6.5l2.5 2.5L10 4"/>
+                </svg>
+              </span>
+              {{ w }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if benefits %}
+        <div class="detail-section reveal">
+          <h2 class="detail-section-title">Benefits</h2>
+          <ul class="benefit-list">
+            {% for b in benefits %}
+            <li class="benefit-item">
+              <span class="benefit-dot">
+                <svg viewBox="0 0 12 12" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 6.5l2.5 2.5L10 4"/>
+                </svg>
+              </span>
+              {{ b }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if steps %}
+        <div class="detail-section reveal">
+          <h2 class="detail-section-title">How It Works</h2>
+          <ol class="process-steps">
+            {% for s in steps %}
+            <li class="process-step-item">
+              <div class="step-badge"></div>
+              <div class="step-text">{{ s }}</div>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+
+        {% if service.group_name == 'financial' %}
+        <div class="disclaimer reveal">
+          <strong>Disclaimer:</strong> Information and assistance for financial and investment-related matters are provided subject to applicable regulations. This does not constitute guaranteed returns, tax outcomes, or personalized regulated financial advice — please consult an appropriately qualified professional for decisions specific to your situation.
+        </div>
+        {% endif %}
+
+        {% if gallery %}
+        <div class="detail-section reveal" style="margin-top:56px;">
+          <h2 class="detail-section-title">Gallery</h2>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
+            {% for g in gallery %}
+            <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border-ink);">
+              <img src="{{ url_for('static', filename=g.image_url) }}" style="width:100%; height:100%; object-fit:cover; display:block; cursor:pointer;" onclick="window.open(this.src, '_blank')" loading="lazy" alt="Gallery Image">
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if related %}
+        <div class="detail-section reveal" style="margin-top:56px;">
+          <h2 class="detail-section-title">Related Services</h2>
+          <div class="related-strip">
+            {% for r in related %}
+            <a href="{{ url_for('service_detail', slug=r.slug) }}" class="related-card" target="_blank" rel="noopener noreferrer">
+              {% if r.image_url %}
+              <img src="{{ url_for('static', filename=r.image_url) }}" alt="{{ r.title }}" class="related-card-img" loading="lazy">
+              {% elif r.group_name == 'digital' %}
+              <img src="{{ url_for('static', filename='images/digital_banner.jpg') }}" alt="{{ r.title }}" class="related-card-img" loading="lazy">
+              {% else %}
+              <img src="{{ url_for('static', filename='images/finance_banner.jpg') }}" alt="{{ r.title }}" class="related-card-img" loading="lazy">
+              {% endif %}
+              <h4>{{ r.title }}</h4>
+              <p>{{ r.description[:90] }}{% if r.description|length > 90 %}...{% endif %}</p>
+              <span class="link">View details →</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- RIGHT: Request Form -->
+      <div id="request">
+        <div class="request-card">
+          <div class="request-card-header">
+            <h3>Request This Service</h3>
+            <p>Fill in a few details and ATULÉRA will get back to you promptly.</p>
+          </div>
+          <div class="request-card-body">
+            <form method="POST" action="{{ url_for('service_request') }}" enctype="multipart/form-data">
+              <input type="hidden" name="service_id" value="{{ service.id }}">
+              <input type="hidden" name="service_title" value="{{ service.title }}">
+              <input type="hidden" name="slug" value="{{ service.slug }}">
+              <input type="text" name="name" placeholder="Your full name" required>
+              <input type="tel" name="phone" placeholder="Phone number">
+              <input type="email" name="email" placeholder="Email address">
+              <input type="text" name="business_name" placeholder="Business name (optional)">
+              <select name="preferred_contact">
+                <option value="phone">Preferred: Phone Call</option>
+                <option value="whatsapp">Preferred: WhatsApp</option>
+                <option value="email">Preferred: Email</option>
+              </select>
+              <textarea name="message" placeholder="Tell us a bit about your requirement — the more detail, the better we can help."></textarea>
+              
+              <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:0.85rem; color:var(--text-ink); margin-bottom:6px; font-weight:500;">Attach File/Image (optional)</label>
+                <input type="file" name="client_file" accept="image/*,.pdf,.doc,.docx" style="background:var(--ink-soft); border:1px dashed var(--border-ink); padding:10px; width:100%; border-radius:8px; font-size:0.8rem;">
+              </div>
+
+              <button type="submit" class="btn btn-solid">Send Request →</button>
+            </form>
+            <div class="form-alt-contact">
+              <a href="https://wa.me/919399431407?text=Hi!%20I%20am%20interested%20in%20{{ service.title | urlencode }}" target="_blank" class="form-alt-btn">💬 WhatsApp</a>
+              <a href="tel:+919399431407" class="form-alt-btn">📞 Call Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <div>
+        <span class="brand" style="font-size:1.3rem; display:block; margin-bottom:8px;">ATULÉRA</span>
+        <p class="footer-copy">&copy; <span id="year"></span> ATULÉRA. All rights reserved.</p>
+      </div>
+      <div style="display:flex; gap:16px; align-items:center;">
+        <a href="/" style="color:var(--text-ink-muted); font-size:0.85rem;">← Back to Home</a>
+        <a href="{{ url_for('admin_login') }}" class="admin-link">⚙ Admin</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% if elevenlabs_agent_active %}
+<elevenlabs-convai agent-id="{{ elevenlabs_agent_id }}"></elevenlabs-convai>
+{% endif %}
+
+<!-- Assistant Widget -->
+<button id="assistantToggle" aria-label="Open assistant">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</button>
+<div id="assistantPanel">
+  <div class="assistant-head">
+    <span>Ask ATULÉRA</span>
+    <button id="assistantClose" aria-label="Close">✕</button>
+  </div>
+  <div class="assistant-body" id="assistantBody">
+    <div class="assistant-msg bot">Hi! Looking for something else? Type below and I'll help.</div>
+  </div>
+  <div class="assistant-input-row">
+    <input type="text" id="assistantInput" placeholder="e.g. website, ITR, social media...">
+    <button id="assistantSend">Ask</button>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+}
+</script>
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>
