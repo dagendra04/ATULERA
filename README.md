@@ -8,7 +8,8 @@
 - General **Contact Form** (homepage) alag se admin panel me "Contact Form Responses" me dikhta hai
 - On-site assistant (bottom-right chat icon) — visitor kuch type kare (jaise "website", "tax", "GST") to matching service ke seedhe detail page ka link deta hai
 - FAQ section bhi admin se manage hoti hai, aur assistant usi data ko search karta hai
-
+## deploy link
+ https://atulera.onrender.com
 ## Local pe chalane ka tarika
 
 ```bash
@@ -26,8 +27,8 @@ Pehli baar chalane par `atulera.db` (SQLite database) apne aap ban jaayega, saat
 URL: **http://localhost:5000/admin/login**
 
 Default login:
-- Username: `admin`
-- Password: `atulera123`
+- Username: 
+- Password: 
 
 ⚠️ **Live karne se pehle password zaroor badal do** — admin dashboard ke sabse neeche "Change Admin Password" section se.
 
