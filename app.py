@@ -658,7 +658,14 @@ def admin_upload_photo():
     else:
         flash("No file selected.", "error")
     return redirect(url_for("admin_dashboard") + "#panel-settings")
+@app.route('/robots.txt')
+def robots_txt():
+    return send_from_directory('.', 'robots.txt', mimetype='text/plain')
 
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    return send_from_directory('.', 'sitemap.xml', mimetype='application/xml')
 
 @app.route("/admin/service/image/<int:service_id>", methods=["POST"])
 @login_required
