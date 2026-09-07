@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-    <url>
-        <loc>https://atulera.onrender.com/</loc>
-        <lastmod>2026-09-07</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>1.0</priority>
-    </url>
-
+<url><loc>https://atulera.onrender.com/</loc><priority>1.0</priority></url>
+<url><loc>https://atulera.onrender.com/services/itr-filing</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/financial-management</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/investment-support</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/tax-documentation-support</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/website-creation</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/social-media-management</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/google-business-services</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/whatsapp-business-setup</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/payment-qr-services</loc><priority>0.8</priority></url>
+<url><loc>https://atulera.onrender.com/services/business-photography</loc><priority>0.8</priority></url>
 </urlset>
