@@ -3,8 +3,8 @@ import os
 import uuid
 from datetime import datetime
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, g
 from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, g, send_from_directory
 
 load_dotenv()  # Load .env file
 
@@ -356,6 +356,14 @@ def elevenlabs_agent_active():
 
 
 # ---------------------------------------------------------------------------
+# Google Search Console verification
+# ---------------------------------------------------------------------------
+@app.route("/google6eb8c1005c342624.html")
+def google_site_verification():
+    return send_from_directory(BASE_DIR, "google6eb8c1005c342624.html")
+
+
+# ---------------------------------------------------------------------------
 # Public routes
 # ---------------------------------------------------------------------------
 @app.route("/")
@@ -576,7 +584,7 @@ REQUEST_STATUSES = ["New", "Contacted", "In Progress", "Completed", "Cancelled"]
 def admin_dashboard():
     db           = get_db()
     services     = db.execute("SELECT * FROM services ORDER BY group_name,sort_order").fetchall()
-    
+
     # Fetch galleries and group by service_id
     galleries_raw = db.execute("SELECT * FROM service_gallery").fetchall()
     galleries = {}
@@ -617,19 +625,19 @@ def admin_dashboard():
 @login_required
 def admin_site_settings():
     db = get_db()
-    
+
     photo_file = request.files.get("admin_photo")
     if photo_file:
         path = save_upload(photo_file, sub="settings")
         if path:
             set_site_setting(db, "admin_photo", path)
-            
+
     qr_file = request.files.get("payment_qr")
     if qr_file:
         path = save_upload(qr_file, sub="settings")
         if path:
             set_site_setting(db, "payment_qr", path)
-            
+
     flash("Site settings updated successfully.", "success")
     return redirect(url_for("admin_dashboard") + "#panel-settings")
 
